@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_search">Zoeken</string>
+    <string name="title_favourites">Favorieten</string>
+    <string name="title_start">Start</string>
+</resources>
