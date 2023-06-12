@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name" translatable="false">Recipe App</string>
-    <string name="title_start">Start</string>
-    <string name="title_search">Search</string>
-    <string name="title_favourites">Favourites</string>
+    <string name="nav_start">Start</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_favourites">Favourites</string>
+    <string name="title_start">Select a category</string>
+    <string name="title_search">Search for a meal</string>
+    <string name="title_favourites">Favourite meals</string>
+    <string name="placeholder_name">Name</string>
+    <string name="placeholder_description">Description</string>
+    <string name="placeholder_visual_meal">Meal</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

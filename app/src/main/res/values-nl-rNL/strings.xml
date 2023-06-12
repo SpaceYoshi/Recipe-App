@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="title_search">Zoeken</string>
-    <string name="title_favourites">Favorieten</string>
-    <string name="title_start">Start</string>
+    <string name="nav_search">Zoeken</string>
+    <string name="nav_favourites">Favorieten</string>
+    <string name="nav_start">Start</string>
+    <string name="title_start">Selecteer een categorie</string>
+    <string name="title_search">Zoek naar een gerecht</string>
+    <string name="title_favourites">Favoriete gerechten</string>
+    <string name="placeholder_name">Naam</string>
+    <string name="placeholder_description">Beschrijving</string>
+    <string name="placeholder_visual_meal">Gerecht</string>
 </resources>
