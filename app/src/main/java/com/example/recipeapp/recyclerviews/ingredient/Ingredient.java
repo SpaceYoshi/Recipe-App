@@ -1,13 +1,19 @@
-package com.example.recipeapp.recyclerviews.mealcategory;
+package com.example.recipeapp.recyclerviews.ingredient;
 
-public class MealCategory {
+public class Ingredient {
+    private int id;
     private String name;
     private String description;
     // private Image image;
 
-    public MealCategory(String name, String description) {
+    public Ingredient(int id, String name, String description) {
+        this.id = id;
         this.name = name;
         this.description = description;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {

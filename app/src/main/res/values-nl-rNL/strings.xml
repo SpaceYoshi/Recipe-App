@@ -8,5 +8,11 @@
     <string name="title_favourites">Favoriete gerechten</string>
     <string name="placeholder_name">Naam</string>
     <string name="placeholder_description">Beschrijving</string>
-    <string name="placeholder_visual_meal">Gerecht</string>
+    <string name="visual_meal">Gerecht</string>
+    <string name="visual_ingredient">Ingrediënt</string>
+    <string name="placeholder_category">Categorie</string>
+    <string name="placeholder_area">Gebied</string>
+    <string name="visual_area">Locatie</string>
+    <string name="visual_category">Hashtag</string>
+    <string name="random_button">Verrasing</string>
 </resources>

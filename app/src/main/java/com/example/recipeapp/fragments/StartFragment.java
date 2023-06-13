@@ -28,8 +28,7 @@ public class StartFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        RecyclerView recyclerView = requireView().findViewById(R.id.recycler_view_category);
-        recyclerView.setHasFixedSize(false);
+        RecyclerView recyclerView = requireView().findViewById(R.id.start_recycler_view);
 
         List<MealCategory> mealCategoryList = new ArrayList<>();
         addTestData(mealCategoryList);

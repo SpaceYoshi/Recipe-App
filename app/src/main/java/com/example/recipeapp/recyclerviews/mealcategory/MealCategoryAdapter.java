@@ -23,13 +23,14 @@ public class MealCategoryAdapter extends RecyclerView.Adapter<MealCategoryViewHo
     @NonNull
     @Override
     public MealCategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MealCategoryViewHolder(LayoutInflater.from(context).inflate(R.layout.item_category, parent, false));
+        return new MealCategoryViewHolder(LayoutInflater.from(context).inflate(R.layout.item_meal_category, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull MealCategoryViewHolder holder, int position) {
         holder.name.setText(mealCategoryList.get(position).getName());
         holder.description.setText(mealCategoryList.get(position).getDescription());
+        // image
     }
 
     @Override
@@ -37,7 +38,7 @@ public class MealCategoryAdapter extends RecyclerView.Adapter<MealCategoryViewHo
         try {
             return mealCategoryList.size();
         } catch (Exception e) {
-            System.out.println("Error: " + e);
+            e.printStackTrace();
             return 0;
         }
     }
