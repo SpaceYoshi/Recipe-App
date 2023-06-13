@@ -1,28 +1,29 @@
 package com.example.recipeapp.recyclerviews.meal;
 
-import com.example.recipeapp.recyclerviews.ingredient.Ingredient;
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
 public class Meal {
-    private int id;
-    private String name;
-    private String category;
-    private String area;
-    private String instructions;
-    // private image image;
-    private List<String> tagList;
-    private String linkYouTube;
-    private List<Ingredient> ingredientList; // main ingredient is first item
-    private List<String> measureList;
+    private final int id;
+    private final String name;
+    private final String category;
+    private final String area;
+    private final String instructions;
+    private final String imageURI;
+    private final List<String> tagList;
+    private final String linkYouTube;
+    private final List<String> ingredientList; // main ingredient is first item
+    private final List<String> measureList;
 
     public Meal(int id, String name, String category, String area, String instructions,
-                List<String> tagList, String linkYouTube, List<Ingredient> ingredientList, List<String> measureList) {
+                String imageURI, List<String> tagList, String linkYouTube, List<String> ingredientList, List<String> measureList) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.area = area;
         this.instructions = instructions;
+        this.imageURI = imageURI;
         this.tagList = tagList;
         this.linkYouTube = linkYouTube;
         this.ingredientList = ingredientList;
@@ -49,6 +50,10 @@ public class Meal {
         return instructions;
     }
 
+    public String getImageURI() {
+        return imageURI;
+    }
+
     public List<String> getTagList() {
         return tagList;
     }
@@ -57,12 +62,29 @@ public class Meal {
         return linkYouTube;
     }
 
-    public List<Ingredient> getIngredientList() {
+    public List<String> getIngredientList() {
         return ingredientList;
     }
 
     public List<String> getMeasureList() {
         return measureList;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Meal{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", area='" + area + '\'' +
+                ", instructions='" + instructions + '\'' +
+                ", imageURI='" + imageURI + '\'' +
+                ", tagList=" + tagList +
+                ", linkYouTube='" + linkYouTube + '\'' +
+                ", ingredientList=" + ingredientList +
+                ", measureList=" + measureList +
+                '}';
     }
 
 }

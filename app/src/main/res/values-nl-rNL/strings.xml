@@ -14,5 +14,6 @@
     <string name="placeholder_area">Gebied</string>
     <string name="visual_area">Locatie</string>
     <string name="visual_category">Hashtag</string>
-    <string name="random_button">Verrasing</string>
+    <string name="button_search">Zoek</string>
+    <string name="button_random">Verrasing</string>
 </resources>

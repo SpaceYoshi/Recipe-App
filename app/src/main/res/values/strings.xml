@@ -14,5 +14,6 @@
     <string name="placeholder_area">Area</string>
     <string name="visual_area">Location</string>
     <string name="visual_category">Hashtag</string>
-    <string name="random_button">Surprise</string>
+    <string name="button_random">Surprise</string>
+    <string name="button_search">Search</string>
 </resources>

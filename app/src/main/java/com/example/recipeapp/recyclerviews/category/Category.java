@@ -1,13 +1,13 @@
-package com.example.recipeapp.recyclerviews.ingredient;
+package com.example.recipeapp.recyclerviews.category;
 
 import androidx.annotation.NonNull;
 
-public class Ingredient {
-    private final String name;
-    private final String description;
-    private final String imageURI;
+public class Category {
+    private String name;
+    private String description;
+    private String imageURI;
 
-    public Ingredient(String name, String description, String imageURI) {
+    public Category(String name, String description, String imageURI) {
         this.name = name;
         this.description = description;
         this.imageURI = imageURI;
@@ -28,7 +28,7 @@ public class Ingredient {
     @NonNull
     @Override
     public String toString() {
-        return "Ingredient{" +
+        return "Category{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", imageURI='" + imageURI + '\'' +
