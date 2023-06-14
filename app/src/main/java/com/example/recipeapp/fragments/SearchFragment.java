@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.recipeapp.R;
 import com.example.recipeapp.api.APIManager;
+import com.example.recipeapp.api.MealSearchType;
 import com.example.recipeapp.api.listeners.APIListenerArea;
 import com.example.recipeapp.api.listeners.APIListenerCategory;
 import com.example.recipeapp.api.listeners.APIListenerMeal;
@@ -39,7 +40,7 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
     private static final List<Category> CATEGORY_LIST = new ArrayList<>(20);
     private static final List<Area> AREA_LIST = new ArrayList<>(40);
     private static final List<Meal> MEAL_LIST = new ArrayList<>();
-    private final APIManager apiManager = new APIManager(getContext(), this, this, this);
+    private APIManager apiManager;
     private static boolean firstStart = true;
 
     // Adapters
@@ -59,6 +60,8 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        apiManager = new APIManager(getContext(), this, this, this);
+//        Log.d(LOG_TAG, "First start: " + firstStart);
         if (firstStart) {
             apiManager.getCategories();
             apiManager.getAreas();
@@ -92,11 +95,11 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
 
         // Buttons
         Button searchButton = requireView().findViewById(R.id.search_search_button);
-        Button searchRandomButton = recyclerView.findViewById(R.id.search_random_button);
+        Button searchRandomButton = requireView().findViewById(R.id.search_random_button);
         searchButton.setOnClickListener(this::onSearchButton);
         searchRandomButton.setOnClickListener(this::onRandomButton);
 
-        // Spinners
+        // Spinners TODO: find a way to stop the spinners from activating on init
         Spinner spinnerCategory = requireView().findViewById(R.id.search_spinner_category);
         categorySpinnerAdapter = new CategorySpinnerAdapter(requireContext(), CATEGORY_LIST);
         spinnerCategory.setAdapter(categorySpinnerAdapter);
@@ -105,7 +108,8 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 resetMealList();
                 Category selectedCategory = (Category) parent.getItemAtPosition(position);
-                apiManager.getMealsCategory(selectedCategory.getName());
+                if (selectedCategory == null) return;
+                apiManager.getMeals(MealSearchType.SHORT_CATEGORY, selectedCategory.getName());
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -119,7 +123,8 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 resetMealList();
                 Area selectedArea = (Area) parent.getItemAtPosition(position);
-                apiManager.getMealsArea(selectedArea.getName());
+                if (selectedArea == null) return;
+                apiManager.getMeals(MealSearchType.SHORT_AREA, selectedArea.getName());
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -133,17 +138,18 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
 
     public void onRandomButton(View view) {
         resetMealList();
-        apiManager.getMealRandom();
+        apiManager.getMeals(MealSearchType.LONG_RANDOM);
     }
 
     private void onSearch(String query) {
         resetMealList();
-        if (checkBoxIngredient.isChecked()) apiManager.getMealsPrimaryIngredient(query);
-        else apiManager.getMealsName(query);
+        if (checkBoxIngredient.isChecked()) apiManager.getMeals(MealSearchType.SHORT_PRIMARY_INGREDIENT, query);
+        else apiManager.getMeals(MealSearchType.LONG_NAME, query);
     }
 
     private void resetMealList() {
         MEAL_LIST.clear();
+        Log.d(LOG_TAG, "Meal list reset.");
     }
 
     @Override
@@ -168,7 +174,7 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
         Log.e(LOG_TAG, error.toString());
     }
 
-    @SuppressLint("NotifyDataSetChanged") // could be improved
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onMealAvailable(Meal meal) {
         MEAL_LIST.add(meal);

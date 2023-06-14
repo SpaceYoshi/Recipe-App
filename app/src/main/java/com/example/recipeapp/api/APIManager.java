@@ -2,11 +2,14 @@ package com.example.recipeapp.api;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.recipeapp.R;
 import com.example.recipeapp.api.listeners.APIListenerCategory;
+import com.example.recipeapp.views.area.AreaFlagMap;
 import com.example.recipeapp.views.category.Category;
 import com.example.recipeapp.views.ingredient.Ingredient;
 import com.example.recipeapp.views.meal.Meal;
@@ -29,19 +32,22 @@ import java.util.Map;
 public class APIManager {
     private static final String LOG_TAG = APIManager.class.getName();
     private static final String API_KEY = "1";
-    private static final String JSON_URL_PREFIX = "https://www.themealdb.com/api/json/v1/";
+    private static final String JSON_URL_PREFIX = "https://www.themealdb.com/api/json/v1/" + API_KEY;
     private static final Map<String, Ingredient> INGREDIENT_MAP = new HashMap<>(600); // currently 574 different ingredients
     private static boolean ingredientMapFilled = false;
     private final RequestQueue queue;
     private final APIListenerArea listenerArea;
     private final APIListenerCategory listenerCategory;
     private final APIListenerMeal listenerMeal;
+    private final Context context;
 
     public APIManager(Context context, APIListenerArea listenerArea, APIListenerCategory listenerCategory, APIListenerMeal listenerMeal) {
         this.listenerArea = listenerArea;
         this.listenerCategory = listenerCategory;
         this.listenerMeal = listenerMeal;
         this.queue = Volley.newRequestQueue(context);
+        this.context = context;
+        fillIngredientMap();
     }
 
     public void getCategories() {
@@ -49,7 +55,7 @@ public class APIManager {
             Log.e(LOG_TAG, "Required listener is null.");
             return;
         }
-        final String url = JSON_URL_PREFIX + API_KEY + "/categories.php/";
+        final String url = JSON_URL_PREFIX + "/categories.php/";
         final JsonObjectRequest request = new JsonObjectRequest(url, response -> {
 //            Log.d(LOG_TAG, "Volley response: " + response.toString());
             try {
@@ -79,7 +85,7 @@ public class APIManager {
             Log.e(LOG_TAG, "Required listener is null.");
             return;
         }
-        final String url = JSON_URL_PREFIX + API_KEY + "/list.php?a=list";
+        final String url = JSON_URL_PREFIX + "/list.php?a=list";
         final JsonObjectRequest request = new JsonObjectRequest(url, response -> {
 //            Log.d(LOG_TAG, "Volley response: " + response.toString());
             try {
@@ -88,7 +94,10 @@ public class APIManager {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String name = jsonObject.getString("strArea");
 
-                    Area area = new Area(name);
+                    Integer resourceID = AreaFlagMap.MAP.get(name);
+                    if (resourceID == null) resourceID = R.drawable.ic_launcher_background; // placeholder
+
+                    Area area = new Area(name, resourceID);
 //                    Log.d(LOG_TAG, "Adding " + area);
                     listenerArea.onAreaAvailable(area);
                 }
@@ -102,57 +111,45 @@ public class APIManager {
         queue.add(request);
     }
 
-    private enum MealSearchType {NAME, CATEGORY, AREA, PRIMARY_INGREDIENT, RANDOM}
-
-    public void getMealsName(String input) {
-        getMeals(MealSearchType.NAME, input);
+    public void getMeals(MealSearchType mealSearchType) {
+        getMeals(mealSearchType, null);
     }
-
-    public void getMealsCategory(String category) {
-        getMeals(MealSearchType.CATEGORY, category);
-    }
-
-    public void getMealsArea(String area) {
-        getMeals(MealSearchType.AREA, area);
-    }
-
-    public void getMealsPrimaryIngredient(String ingredient) {
-        getMeals(MealSearchType.PRIMARY_INGREDIENT, ingredient);
-    }
-
-    public void getMealRandom() {
-        getMeals(MealSearchType.RANDOM, null);
-    }
-
-    private void getMeals(MealSearchType mealSearchType, String input) {
-        if (listenerMeal == null) {
-            Log.e(LOG_TAG, "Required listener is null.");
+    public void getMeals(MealSearchType mealSearchType, String input) {
+        if (mealSearchType != MealSearchType.LONG_RANDOM) if (StringValidator.isInvalidClean(input)) {
+            Log.e(LOG_TAG, "Illegal input, ignoring.");
             return;
-        } else if (!ingredientMapFilled) fillIngredientMap(); // If meals are requested, we should start filling up the ingredient list.
+        } else if (listenerMeal == null) {
+            Log.e(LOG_TAG, "Meal listener is null.");
+            return;
+        }
 
-        String url = JSON_URL_PREFIX + API_KEY;
+        String url = JSON_URL_PREFIX;
         switch (mealSearchType) {
-            case NAME:
-                url += "/search.php?s=" + StringValidator.clean(input);
+            case LONG_NAME:
+                url += "/search.php?s=" + input;
                 break;
-            case CATEGORY:
-                url += "/filter.php?c=" + StringValidator.clean(input);
-                break;
-            case AREA:
-                url += "/filter.php?a=" + StringValidator.clean(input);
-                break;
-            case PRIMARY_INGREDIENT:
-                url += "/filter.php?i=" + StringValidator.clean(input);
-                break;
-            case RANDOM:
+            case LONG_RANDOM:
                 url += "/random.php";
                 break;
+            case LONG_ID:
+                url += "/lookup.php?i=" + input;
+                break;
+            default:
+                handleShortMeals(mealSearchType, input);
+                return;
         }
-        if (mealSearchType != MealSearchType.RANDOM) if (!StringValidator.isValid(input)) return;
+        getMealsByURL(url);
+    }
 
+    private void getMealsByURL(String url) {
         final JsonObjectRequest request = new JsonObjectRequest(url, response -> {
 //            Log.d(LOG_TAG, "Volley response: " + response.toString());
             try {
+                if (response.getString("meals").equals("null")) {
+                    Toast toast = Toast.makeText(context, "No results, please try again.", Toast.LENGTH_SHORT);
+                    toast.show();
+                    return;
+                }
                 JSONArray jsonArray = response.getJSONArray("meals");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -181,6 +178,46 @@ public class APIManager {
         queue.add(request);
     }
 
+    private void handleShortMeals(MealSearchType mealSearchType, String input) {
+        String url = JSON_URL_PREFIX;
+        switch (mealSearchType) {
+            case SHORT_CATEGORY:
+                url += "/filter.php?c=" + input;
+                break;
+            case SHORT_AREA:
+                url += "/filter.php?a=" + input;
+                break;
+            case SHORT_PRIMARY_INGREDIENT:
+                url += "/filter.php?i=" + input;
+                break;
+        }
+        final JsonObjectRequest request = new JsonObjectRequest(url, response -> {
+//            Log.d(LOG_TAG, "Volley response: " + response.toString());
+            try {
+                if (response.getString("meals").equals("null")) {
+                    Toast toast = Toast.makeText(context, "No results, please try again.", Toast.LENGTH_SHORT);
+                    toast.show();
+                    return;
+                }
+                List<Integer> idList = new ArrayList<>();
+                JSONArray jsonArray = response.getJSONArray("meals");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    int id = jsonObject.getInt("idMeal");
+                    idList.add(id);
+//                    Log.d(LOG_TAG, "Adding " + id);
+                }
+                for (Integer integer : idList) getMeals(MealSearchType.LONG_ID, integer.toString());
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "Error while parsing JSON data: " + e.getLocalizedMessage());
+            }
+        }, error -> {
+            Log.e(LOG_TAG, error.getLocalizedMessage());
+            listenerMeal.onMealError(new Error(error.getLocalizedMessage()));
+        });
+        queue.add(request);
+    }
+
     public List<Ingredient> getMealIngredients(Meal meal) {
         if (!ingredientMapFilled) {
             Log.e(LOG_TAG, "Ingredient list requested but not ready!");
@@ -192,7 +229,7 @@ public class APIManager {
     }
 
     private void fillIngredientMap() {
-        final String url = JSON_URL_PREFIX + API_KEY + "/list.php?i=list";
+        final String url = JSON_URL_PREFIX + "/list.php?i=list";
         final JsonObjectRequest request = new JsonObjectRequest(url, response -> {
 //            Log.d(LOG_TAG, "Volley response: " + response.toString());
             try {

@@ -39,10 +39,11 @@ public class AreaSpinnerAdapter extends ArrayAdapter<Area> {
     }
 
     private View getCustomView(int position, ViewGroup parent) {
+//        Log.d(LOG_TAG, "getCustomView()");
         View row = LayoutInflater.from(context).inflate(R.layout.item_spinner, parent, false);
 
         ImageView image = row.findViewById(R.id.spinner_image);
-        Glide.with(context).load(areaList.get(position).getImageURI()).into(image);
+        Glide.with(context).load(areaList.get(position).getResourceID()).into(image);
 
         TextView name = row.findViewById(R.id.spinner_text);
         name.setText(areaList.get(position).getName());

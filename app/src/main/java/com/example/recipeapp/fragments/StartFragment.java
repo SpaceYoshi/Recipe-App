@@ -1,5 +1,6 @@
 package com.example.recipeapp.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -48,6 +49,7 @@ public class StartFragment extends Fragment implements OnItemClickListener, APIL
         recyclerView.setAdapter(categoryAdapter);
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onCategoryAvailable(Category category) {
         CATEGORY_LIST.add(category);
