@@ -1,16 +1,23 @@
 package com.example.recipeapp.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.SearchView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +25,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.recipeapp.R;
 import com.example.recipeapp.api.APIManager;
 import com.example.recipeapp.api.MealSearchType;
@@ -29,6 +37,7 @@ import com.example.recipeapp.views.area.Area;
 import com.example.recipeapp.views.area.AreaSpinnerAdapter;
 import com.example.recipeapp.views.category.Category;
 import com.example.recipeapp.views.category.CategorySpinnerAdapter;
+import com.example.recipeapp.views.ingredient.IngredientAdapter;
 import com.example.recipeapp.views.meal.Meal;
 import com.example.recipeapp.views.meal.MealAdapter;
 
@@ -42,6 +51,8 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
     private static final List<Meal> MEAL_LIST = new ArrayList<>();
     private APIManager apiManager;
     private static boolean firstStart = true;
+    private LayoutInflater inflater;
+    private ViewGroup container;
 
     // Adapters
     private MealAdapter mealAdapter;
@@ -55,13 +66,14 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.inflater = inflater;
+        this.container = container;
         return inflater.inflate(R.layout.fragment_search, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         apiManager = new APIManager(getContext(), this, this, this);
-//        Log.d(LOG_TAG, "First start: " + firstStart);
         if (firstStart) {
             apiManager.getCategories();
             apiManager.getAreas();
@@ -93,7 +105,7 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
         // Checkbox
         checkBoxIngredient = requireView().findViewById(R.id.search_checkBox_ingredient);
 
-        // Buttons
+        // Search & Random button
         Button searchButton = requireView().findViewById(R.id.search_search_button);
         Button searchRandomButton = requireView().findViewById(R.id.search_random_button);
         searchButton.setOnClickListener(this::onSearchButton);
@@ -109,7 +121,7 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
                 resetMealList();
                 Category selectedCategory = (Category) parent.getItemAtPosition(position);
                 if (selectedCategory == null) return;
-                apiManager.getMeals(MealSearchType.SHORT_CATEGORY, selectedCategory.getName());
+                selectCategory(selectedCategory);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -152,6 +164,10 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
         Log.d(LOG_TAG, "Meal list reset.");
     }
 
+    public void selectCategory(Category category) {
+        apiManager.getMeals(MealSearchType.SHORT_CATEGORY, category.getName());
+    }
+
     @Override
     public void onAreaAvailable(Area area) {
         AREA_LIST.add(area);
@@ -190,7 +206,39 @@ public class SearchFragment extends Fragment implements OnItemClickListener, API
     public void onItemClick(int clickedPosition) {
         Log.i(LOG_TAG, "onItemClick called for position " + clickedPosition);
 
-        // TODO
+        Meal selectedMeal = MEAL_LIST.get(clickedPosition);
+        View popupView = inflater.inflate(R.layout.detail_meal, container, false);
+
+        // Find views
+        ImageView image = popupView.findViewById(R.id.detail_meal_image);
+        Glide.with(popupView).load(selectedMeal.getImageURI()).into(image);
+
+        TextView area = popupView.findViewById(R.id.detail_meal_name);
+        TextView category = popupView.findViewById(R.id.detail_meal_category);
+        TextView description = popupView.findViewById(R.id.detail_meal_description);
+
+        area.setText(selectedMeal.getArea());
+        category.setText(selectedMeal.getCategory());
+        description.setText(selectedMeal.getInstructions());
+
+        // YouTube button
+        Button buttonYouTube = popupView.findViewById(R.id.detail_meal_youtube);
+        buttonYouTube.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(selectedMeal.getLinkYouTube()))));
+
+        // Ingredient RecyclerView
+        RecyclerView recyclerViewIngredient = popupView.findViewById(R.id.detail_meal_ingredients);
+        recyclerViewIngredient.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerViewIngredient.setAdapter(new IngredientAdapter(getContext(), apiManager.getMealIngredients(selectedMeal), this));
+
+        // Define PopupWindow
+        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        popupWindow.showAtLocation(getView(), Gravity.TOP | Gravity.CENTER, 0, 0);
+        popupView.setOnClickListener(v -> popupWindow.dismiss());
     }
 
 }

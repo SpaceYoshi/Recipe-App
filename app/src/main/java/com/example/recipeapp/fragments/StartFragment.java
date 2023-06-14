@@ -10,15 +10,16 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.recipeapp.R;
+import com.example.recipeapp.api.APIManager;
+import com.example.recipeapp.api.listeners.APIListenerCategory;
+import com.example.recipeapp.utility.OnItemClickListener;
 import com.example.recipeapp.views.category.Category;
 import com.example.recipeapp.views.category.CategoryAdapter;
-import com.example.recipeapp.utility.OnItemClickListener;
-import com.example.recipeapp.api.listeners.APIListenerCategory;
-import com.example.recipeapp.api.APIManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,12 @@ public class StartFragment extends Fragment implements OnItemClickListener, APIL
     private static final List<Category> CATEGORY_LIST = new ArrayList<>(20);
     private static boolean firstStart = true;
     private CategoryAdapter categoryAdapter;
+    private ViewGroup container;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.container = container;
         return inflater.inflate(R.layout.fragment_start, container, false);
     }
 
@@ -43,10 +46,12 @@ public class StartFragment extends Fragment implements OnItemClickListener, APIL
 
             firstStart = false;
         }
-        RecyclerView recyclerView = requireView().findViewById(R.id.start_recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // RecyclerView
+        RecyclerView recyclerViewCategory = requireView().findViewById(R.id.start_recycler_view);
+        recyclerViewCategory.setLayoutManager(new LinearLayoutManager(getContext()));
         categoryAdapter = new CategoryAdapter(getContext(), CATEGORY_LIST, this);
-        recyclerView.setAdapter(categoryAdapter);
+        recyclerViewCategory.setAdapter(categoryAdapter);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -64,11 +69,14 @@ public class StartFragment extends Fragment implements OnItemClickListener, APIL
     @Override
     public void onItemClick(int clickedPosition) {
         Log.i(LOG_TAG, "onItemClick called for position " + clickedPosition);
-        // TODO Create an explicit intent to open the detail activity
 
-        // TODO Pass the photo that was selected on to the detail activity by putting it inside the intent
+        SearchFragment searchFragment = new SearchFragment();
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(container.getId(), searchFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
 
-        // TODO Start the activity using the intent
+        searchFragment.selectCategory(CATEGORY_LIST.get(clickedPosition));
     }
 
 }

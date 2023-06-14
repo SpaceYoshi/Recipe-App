@@ -17,4 +17,5 @@
     <string name="button_search">Zoek</string>
     <string name="button_random">Verrasing</string>
     <string name="checkbox_ingredient">Ingrediënt</string>
+    <string name="button_youtube">Video</string>
 </resources>
