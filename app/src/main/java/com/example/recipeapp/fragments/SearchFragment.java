@@ -1,10 +1,16 @@
 package com.example.recipeapp.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.SearchView;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,13 +19,37 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.recipeapp.R;
-import com.example.recipeapp.recyclerviews.meal.Meal;
-import com.example.recipeapp.recyclerviews.meal.MealAdapter;
+import com.example.recipeapp.api.APIManager;
+import com.example.recipeapp.api.listeners.APIListenerArea;
+import com.example.recipeapp.api.listeners.APIListenerCategory;
+import com.example.recipeapp.api.listeners.APIListenerMeal;
+import com.example.recipeapp.utility.OnItemClickListener;
+import com.example.recipeapp.views.area.Area;
+import com.example.recipeapp.views.area.AreaSpinnerAdapter;
+import com.example.recipeapp.views.category.Category;
+import com.example.recipeapp.views.category.CategorySpinnerAdapter;
+import com.example.recipeapp.views.meal.Meal;
+import com.example.recipeapp.views.meal.MealAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchFragment extends Fragment {
+public class SearchFragment extends Fragment implements OnItemClickListener, APIListenerArea, APIListenerCategory, APIListenerMeal {
+    private static final String LOG_TAG = SearchFragment.class.getName();
+    private static final List<Category> CATEGORY_LIST = new ArrayList<>(20);
+    private static final List<Area> AREA_LIST = new ArrayList<>(40);
+    private static final List<Meal> MEAL_LIST = new ArrayList<>();
+    private final APIManager apiManager = new APIManager(getContext(), this, this, this);
+    private static boolean firstStart = true;
+
+    // Adapters
+    private MealAdapter mealAdapter;
+    private CategorySpinnerAdapter categorySpinnerAdapter;
+    private AreaSpinnerAdapter areaSpinnerAdapter;
+
+    // Views
+    private SearchView searchView;
+    private CheckBox checkBoxIngredient;
 
     @Nullable
     @Override
@@ -29,25 +59,132 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        if (firstStart) {
+            apiManager.getCategories();
+            apiManager.getAreas();
+
+            firstStart = false;
+        }
+
         // RecyclerView
         RecyclerView recyclerView = requireView().findViewById(R.id.search_recycler_view);
-
-        List<Meal> mealList = new ArrayList<>();
-//        addTestData(mealList);
-
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new MealAdapter(getContext(), mealList));
+        mealAdapter = new MealAdapter(getContext(), MEAL_LIST, this);
+        recyclerView.setAdapter(mealAdapter);
 
         // SearchView
-        SearchView searchView = requireView().findViewById(R.id.search_view);
+        searchView = requireView().findViewById(R.id.search_view);
         searchView.setOnClickListener(v -> searchView.setIconified(false));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                onSearch(query);
+                return true;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        // Checkbox
+        checkBoxIngredient = requireView().findViewById(R.id.search_checkBox_ingredient);
+
+        // Buttons
+        Button searchButton = requireView().findViewById(R.id.search_search_button);
+        Button searchRandomButton = recyclerView.findViewById(R.id.search_random_button);
+        searchButton.setOnClickListener(this::onSearchButton);
+        searchRandomButton.setOnClickListener(this::onRandomButton);
+
+        // Spinners
+        Spinner spinnerCategory = requireView().findViewById(R.id.search_spinner_category);
+        categorySpinnerAdapter = new CategorySpinnerAdapter(requireContext(), CATEGORY_LIST);
+        spinnerCategory.setAdapter(categorySpinnerAdapter);
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                resetMealList();
+                Category selectedCategory = (Category) parent.getItemAtPosition(position);
+                apiManager.getMealsCategory(selectedCategory.getName());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        Spinner spinnerArea = requireView().findViewById(R.id.search_spinner_area);
+        areaSpinnerAdapter = new AreaSpinnerAdapter(requireContext(), AREA_LIST);
+        spinnerArea.setAdapter(areaSpinnerAdapter);
+        spinnerArea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                resetMealList();
+                Area selectedArea = (Area) parent.getItemAtPosition(position);
+                apiManager.getMealsArea(selectedArea.getName());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
-//    private void addTestData(List<Meal> mealList) {
-//        mealList.add(new Meal(52864, "Mushroom & Chestnut Rotolo", "Vegetarian", "British", "Soak the dried mushrooms in 350ml boiling water and set aside until needed. Blitz ¾ of the chestnuts with 150ml water until creamy. Roughly chop the remaining chestnuts.\\r\\nHeat 2 tbsp olive oil in a large non-stick frying pan. Fry the shallots with a pinch of salt until softened, then add the garlic, chopped chestnuts and rosemary, and fry for 2 mins more. Add the wild mushrooms, 2 tbsp oil and some seasoning. Cook for 3 mins until they begin to soften. Drain and roughly chop the dried mushrooms (reserve the soaking liquid), then add those too, along with the soy sauce, and fry for 2 mins more.\\r\\nWhisk the wine, reserved mushroom liquid and chestnut cream together to create a sauce. Season, then add half to the mushroom mixture in the pan and cook for 1 min until the sauce becomes glossy. Remove and discard the rosemary sprigs, then set the mixture aside.\\r\\nHeat oven to 180C/160C fan/gas 4. Bring a large pan of salted water to the boil and get a large bowl of ice water ready. Drop the lasagne sheets into the boiling water for 2 mins or until pliable and a little cooked, then immediately plunge them into the cold water. Using your fingers, carefully separate the sheets and transfer to a clean tea towel. Spread a good spoonful of the sauce on the bottom two thirds of each sheet, then, rolling away from yourself, roll up the shorter ends. Cut each roll in half, then position the rolls of pasta cut-side up in a pie dish that you are happy to serve from at the table. If you have any mushroom sauce remaining after you’ve rolled up all the sheets, simply push it into some of the exposed rolls of pasta.\\r\\nPour the rest of the sauce over the top of the pasta, then bake for 10 mins or until the pasta no longer has any resistance when tested with a skewer.\\r\\nMeanwhile, put the breadcrumbs, the last 2 tbsp olive oil, sage leaves and some seasoning in a bowl, and toss everything together. Scatter the rotolo with the crumbs and sage, then bake for another 10 mins, until the top is golden and the sage leaves are crispy. Leave to cool for 10 mins to allow the pasta to absorb the sauce, then drizzle with a little truffle oil, if you like, before taking your dish to the table.",
-//                imageURI, null, null, null, null));
-//        mealList.add(new Meal(52777, "Mediterranean Pasta Salad", "Seafood", "Italian", "Bring a large saucepan of salted water to the boil\r\nAdd the pasta, stir once and cook for about 10 minutes or as directed on the packet.\r\nMeanwhile, wash the tomatoes and cut into quarters. Slice the olives. Wash the basil.\r\nPut the tomatoes into a salad bowl and tear the basil leaves over them. Add a tablespoon of olive oil and mix.\r\nWhen the pasta is ready, drain into a colander and run cold water over it to cool it quickly.\r\nToss the pasta into the salad bowl with the tomatoes and basil.\r\nAdd the sliced olives, drained mozzarella balls, and chunks of tuna. Mix well and let the salad rest for at least half an hour to allow the flavours to mingle.\r\nSprinkle the pasta with a generous grind of black pepper and drizzle with the remaining olive oil just before serving.",
-//                imageURI, null, null, null, null));
-//    }
+    public void onSearchButton(View view) {
+        onSearch(searchView.getQuery().toString());
+    }
+
+    public void onRandomButton(View view) {
+        resetMealList();
+        apiManager.getMealRandom();
+    }
+
+    private void onSearch(String query) {
+        resetMealList();
+        if (checkBoxIngredient.isChecked()) apiManager.getMealsPrimaryIngredient(query);
+        else apiManager.getMealsName(query);
+    }
+
+    private void resetMealList() {
+        MEAL_LIST.clear();
+    }
+
+    @Override
+    public void onAreaAvailable(Area area) {
+        AREA_LIST.add(area);
+        areaSpinnerAdapter.notifyDataSetChanged(); // TODO check if this is sufficient to refresh
+    }
+
+    @Override
+    public void onAreaError(Error error) {
+        Log.e(LOG_TAG, error.toString());
+    }
+
+    @Override
+    public void onCategoryAvailable(Category category) {
+        CATEGORY_LIST.add(category);
+        categorySpinnerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onCategoryError(Error error) {
+        Log.e(LOG_TAG, error.toString());
+    }
+
+    @SuppressLint("NotifyDataSetChanged") // could be improved
+    @Override
+    public void onMealAvailable(Meal meal) {
+        MEAL_LIST.add(meal);
+        mealAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onMealError(Error error) {
+        Log.e(LOG_TAG, error.toString());
+    }
+
+    @Override
+    public void onItemClick(int clickedPosition) {
+        Log.i(LOG_TAG, "onItemClick called for position " + clickedPosition);
+
+        // TODO
+    }
 
 }

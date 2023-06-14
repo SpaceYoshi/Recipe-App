@@ -16,4 +16,5 @@
     <string name="visual_category">Hashtag</string>
     <string name="button_random">Surprise</string>
     <string name="button_search">Search</string>
+    <string name="checkbox_ingredient">Ingredient</string>
 </resources>

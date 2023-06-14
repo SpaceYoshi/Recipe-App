@@ -1,4 +1,4 @@
-package com.example.recipeapp.recyclerviews.category;
+package com.example.recipeapp.views.category;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,10 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.recipeapp.R;
+import com.example.recipeapp.utility.OnItemClickListener;
 
 import java.util.List;
 
-public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.MealCategoryViewHolder> {
+public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
     private static final String LOG_TAG = CategoryAdapter.class.getName();
     private final Context context;
     private final List<Category> categoryList;
@@ -30,12 +31,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.MealCa
 
     @NonNull
     @Override
-    public MealCategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MealCategoryViewHolder(LayoutInflater.from(context).inflate(R.layout.item_category, parent, false));
+    public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new CategoryViewHolder(LayoutInflater.from(context).inflate(R.layout.item_category, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MealCategoryViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         holder.name.setText(categoryList.get(position).getName());
         holder.description.setText(categoryList.get(position).getDescription());
         Glide.with(context).load(categoryList.get(position).getImageURI()).into(holder.image);
@@ -46,16 +47,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.MealCa
         return categoryList.size();
     }
 
-    public interface OnItemClickListener {
-        void onItemClick(int clickedPosition);
-    }
+    // TODO check if still works
+//    public interface OnItemClickListener {
+//        void onItemClick(int clickedPosition);
+//    }
 
-    class MealCategoryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class CategoryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView name;
         TextView description;
         ImageView image;
 
-        public MealCategoryViewHolder(@NonNull View itemView) {
+        public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.meal_category_name);
             image = itemView.findViewById(R.id.meal_category_image);

@@ -16,4 +16,5 @@
     <string name="visual_category">Hashtag</string>
     <string name="button_search">Zoek</string>
     <string name="button_random">Verrasing</string>
+    <string name="checkbox_ingredient">Ingrediënt</string>
 </resources>

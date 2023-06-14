@@ -1,6 +1,6 @@
-package com.example.recipeapp.utility.api.listeners;
+package com.example.recipeapp.api.listeners;
 
-import com.example.recipeapp.recyclerviews.meal.Meal;
+import com.example.recipeapp.views.meal.Meal;
 
 public interface APIListenerMeal {
     void onMealAvailable(Meal meal);

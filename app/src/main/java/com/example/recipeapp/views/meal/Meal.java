@@ -1,4 +1,4 @@
-package com.example.recipeapp.recyclerviews.meal;
+package com.example.recipeapp.views.meal;
 
 import androidx.annotation.NonNull;
 

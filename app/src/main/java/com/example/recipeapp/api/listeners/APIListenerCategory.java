@@ -1,6 +1,6 @@
-package com.example.recipeapp.utility.api.listeners;
+package com.example.recipeapp.api.listeners;
 
-import com.example.recipeapp.recyclerviews.category.Category;
+import com.example.recipeapp.views.category.Category;
 
 public interface APIListenerCategory {
     void onCategoryAvailable(Category category);
