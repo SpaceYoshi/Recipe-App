@@ -61,6 +61,8 @@ public class MealAdapter extends RecyclerView.Adapter<MealAdapter.MealViewHolder
             category = itemView.findViewById(R.id.meal_category);
             area = itemView.findViewById(R.id.meal_area);
             image = itemView.findViewById(R.id.meal_image);
+
+//            itemView.setOnClickListener(this);
         }
 
         @Override
